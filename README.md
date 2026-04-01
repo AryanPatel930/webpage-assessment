@@ -1,12 +1,12 @@
 # Spotnana Technical Assessment - Chatbot
 
-A lightweight AI-powered chat interface built with React + Vite. Users can input prompts and receive responses from the Mistral-7B model via the HuggingFace Inference API — completely free, no credit card required.
+A lightweight AI-powered chat interface built with React + Vite. Users can input prompts and receive responses from the /Qwen2.5-72B-Instruct model via the HuggingFace Inference API — completely free, no credit card required.
 
 ## Features
 
 - **Prompt input with keyboard shortcut** — press `Enter` to send, `Shift+Enter` for a new line
 - **AI response generation** — powered by Mistral-7B-Instruct via HuggingFace
-- **Loading states** — spinner and skeleton loader while the AI is generating a response; input is locked to prevent duplicate requests
+- **Loading states + Stop control** — spinner + **Stop** button while the AI is generating a response (you can cancel an in-flight response)
 - **Error handling** — clear error messages for API failures, model cold-starts, and invalid tokens
 - **Chat history** — full conversation context is maintained and sent with each request
 - **Clear button** — wipe the conversation and start fresh
@@ -32,6 +32,8 @@ Browser (React) ──→ Express Proxy Server ──→ HuggingFace API
 ```
 
 The HuggingFace API token lives only on the Express server. The React frontend never touches it — it just calls `/api/chat` on your own server. This means the token is never visible in browser DevTools, network requests, or the compiled frontend bundle.
+
+The Express server loads environment variables from `server/.env` using a path resolved relative to `server/index.js` (not `process.cwd()`), so it works no matter which directory you start the server from.
 
 ## Setup
 
@@ -87,6 +89,15 @@ cd server
 npm run dev
 ```
 
+`npm run dev` runs the server normally. If port `3001` is already taken by a stale process, the dev script will attempt to free it first.
+
+If you want auto-restart on file changes, use:
+
+```bash
+cd server
+npm run dev:watch
+```
+
 **Terminal 2 — frontend:**
 ```bash
 npm run dev
@@ -136,3 +147,4 @@ src/
 - The HuggingFace free tier may have a **20–30 second cold start** delay on first use if the model is not already loaded. The app handles this with a specific error message prompting the user to retry.
 - Conversation history is kept in React state (in-memory). It resets on page refresh or when the Clear button is clicked.
 - The last 6 messages are included as context in each API request to stay within token limits.
+- While a response is streaming, you can press **Stop** to cancel. If any partial text has already streamed, it will be committed to the chat as the assistant’s message.
