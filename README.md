@@ -1,4 +1,4 @@
-# AI Chat App
+# Spotnana Technical Assessment - Chatbot
 
 A lightweight AI-powered chat interface built with React + Vite. Users can input prompts and receive responses from the Mistral-7B model via the HuggingFace Inference API — completely free, no credit card required.
 
