@@ -1,0 +1,17 @@
+{
+  "name": "ai-chat-app-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/free-dev-port.mjs",
+    "predev:watch": "node scripts/free-dev-port.mjs",
+    "start": "node index.js",
+    "dev": "node index.js",
+    "dev:watch": "node --watch index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
