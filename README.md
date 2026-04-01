@@ -16,7 +16,7 @@ A lightweight AI-powered chat interface built with React + Vite. Users can input
 
 - **React 18** with Vite
 - **HuggingFace Inference API** (free tier)
-- **Model:** `mistralai/Mistral-7B-Instruct-v0.3`
+- **Model:** `Qwen/Qwen2.5-72B-Instruct`
 - Plain CSS (no UI library dependencies)
 
 ## Prerequisites
