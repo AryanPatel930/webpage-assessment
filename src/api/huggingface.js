@@ -1,46 +1,22 @@
 /**
- * Builds a Mistral/Llama instruct-format prompt from message history.
- */
-function buildPrompt(userMessage, history) {
-  let prompt = "";
-  const recent = history.slice(-6);
-  for (const msg of recent) {
-    if (msg.role === "user") {
-      prompt += `[INST] ${msg.content} [/INST]`;
-    } else {
-      prompt += ` ${msg.content} `;
-    }
-  }
-  prompt += `[INST] ${userMessage} [/INST]`;
-  return prompt;
-}
-
-/**
  * Streams a response from the Express proxy server.
- * Calls onChunk(text) incrementally as tokens arrive.
- * Calls onDone() when the stream ends.
- * Throws on error.
+ * Sends the full messages array so the model has complete conversation context.
  *
- * @param {string} userMessage
- * @param {Array} history
- * @param {function} onChunk - called with each text token
+ * @param {Array} messages - Full conversation history [{role, content}]
+ * @param {function} onChunk - called with each text token as it streams in
  * @param {function} onDone - called when stream is complete
  * @param {{ signal?: AbortSignal }} [options]
  */
-export async function sendMessage(
-  userMessage,
-  history = [],
-  onChunk,
-  onDone,
-  options = {}
-) {
+export async function sendMessage(messages = [], onChunk, onDone, options = {}) {
   const { signal } = options;
-  const prompt = buildPrompt(userMessage, history);
+
+  // Send only role + content — strip internal fields like id
+  const payload = messages.map(({ role, content }) => ({ role, content }));
 
   const response = await fetch("http://localhost:3001/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt }),
+    body: JSON.stringify({ messages: payload }),
     signal,
   });
 
@@ -79,11 +55,7 @@ export async function sendMessage(
     }
   } catch (err) {
     if (signal?.aborted || err?.name === "AbortError") {
-      try {
-        await reader.cancel();
-      } catch {
-        /* ignore */
-      }
+      try { await reader.cancel(); } catch { /* ignore */ }
       throw err;
     }
     throw err;

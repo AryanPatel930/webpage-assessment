@@ -42,7 +42,12 @@ export default function App() {
     if (!prompt.trim() || isLoading) return;
 
     const userMessage = { role: "user", content: prompt, id: Date.now() };
-    setMessages((prev) => [...prev, userMessage]);
+
+    // Build the full updated history INCLUDING the new user message
+    // so the model receives complete context
+    const updatedMessages = [...messages, userMessage];
+
+    setMessages(updatedMessages);
     setIsLoading(true);
     setStreamingContent("");
     setError(null);
@@ -58,8 +63,7 @@ export default function App() {
 
     try {
       await sendMessage(
-        prompt,
-        messages,
+        updatedMessages,          // pass full history including new user message
         (token) => {
           accumulated += token;
           streamAccumRef.current = accumulated;
@@ -94,9 +98,7 @@ export default function App() {
         }
         return;
       }
-      if (err?.name === "AbortError") {
-        return;
-      }
+      if (err?.name === "AbortError") return;
       setError(err.message || "Something went wrong. Please try again.");
       setStreamingContent("");
       setIsLoading(false);

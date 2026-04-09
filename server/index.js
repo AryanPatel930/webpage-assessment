@@ -22,10 +22,11 @@ app.use(express.json());
 const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
 
 app.post("/api/chat", async (req, res) => {
-  const { prompt } = req.body;
+  // Accept full messages array for proper conversation context
+  const { messages } = req.body;
 
-  if (!prompt || typeof prompt !== "string") {
-    return res.status(400).json({ error: "Missing or invalid prompt." });
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: "Missing or invalid messages array." });
   }
 
   const token = process.env.HF_TOKEN;
@@ -42,8 +43,9 @@ app.post("/api/chat", async (req, res) => {
       },
       body: JSON.stringify({
         model: "Qwen/Qwen2.5-72B-Instruct",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 512,
+        // Send the full conversation history so the model has full context
+        messages,
+        max_tokens: 1024,
         temperature: 0.7,
         stream: true,
       }),
@@ -62,7 +64,6 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
-    // Set up SSE headers so the browser can read the stream
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
